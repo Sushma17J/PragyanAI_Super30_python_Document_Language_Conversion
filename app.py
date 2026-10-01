@@ -183,6 +183,32 @@ with st.sidebar:
 
     st.divider()
 
+    # ========================================================
+    # ADDED ONLY: SIMPLE DOCX UPLOAD
+    # ========================================================
+
+    st.markdown("### 📄 Upload Document")
+
+    st.caption(
+        "Upload your DOCX file here."
+    )
+
+    sidebar_file = st.file_uploader(
+        "Choose DOCX",
+        type=["docx"],
+        key="sidebar_docx_upload"
+    )
+
+    if sidebar_file is not None:
+
+        st.success(
+            "✅ Document uploaded!"
+        )
+
+    # ========================================================
+    # ORIGINAL SIDEBAR CODE
+    # ========================================================
+
     st.markdown("### 📄 Supported Files")
 
     st.write("• PDF")
@@ -919,9 +945,6 @@ if st.session_state.extracted_pages:
                     preview[:1000]
                     + "..."
                 )
-
-            # UNIQUE KEY
-            # preview_index guarantees uniqueness.
 
             st.text_area(
                 "Extracted text",
