@@ -184,7 +184,7 @@ with st.sidebar:
     st.divider()
 
     # ========================================================
-    # ADDED ONLY: SIMPLE DOCX UPLOAD
+    # SIMPLE DOCX UPLOAD
     # ========================================================
 
     st.markdown("### 📄 Upload Document")
@@ -206,7 +206,7 @@ with st.sidebar:
         )
 
     # ========================================================
-    # ORIGINAL SIDEBAR CODE
+    # SUPPORTED FILES
     # ========================================================
 
     st.markdown("### 📄 Supported Files")
@@ -215,12 +215,17 @@ with st.sidebar:
     st.write("• DOCX")
     st.write("• TXT")
 
+    # ========================================================
+    # TARGET LANGUAGES
+    # ========================================================
+
     st.markdown("### 🌐 Target Languages")
 
     st.write("• English")
     st.write("• Kannada")
     st.write("• Telugu")
     st.write("• Tamil")
+    st.write("• Hindi")
 
     st.divider()
 
@@ -237,9 +242,14 @@ language_map = {
     "English": "en",
     "Kannada": "kn",
     "Telugu": "te",
-    "Tamil": "ta"
+    "Tamil": "ta",
+    "Hindi": "hi"
 }
 
+
+# ============================================================
+# SOURCE LANGUAGE NAMES
+# ============================================================
 
 source_names = {
     "en": "English",
@@ -719,10 +729,6 @@ if uploaded_file is not None:
 
         try:
 
-            # ------------------------------------------------
-            # Extract text
-            # ------------------------------------------------
-
             if extension == ".pdf":
 
                 pages = extract_pdf_pages(
@@ -747,10 +753,6 @@ if uploaded_file is not None:
                     "Unsupported file format."
                 )
 
-            # ------------------------------------------------
-            # Remove empty sections
-            # ------------------------------------------------
-
             pages = [
                 page
                 for page in pages
@@ -763,10 +765,6 @@ if uploaded_file is not None:
                     "No readable text was "
                     "found in the document."
                 )
-
-            # ------------------------------------------------
-            # Save extracted information
-            # ------------------------------------------------
 
             st.session_state.extracted_pages = (
                 pages
@@ -795,10 +793,6 @@ if uploaded_file is not None:
             st.session_state.translated_paragraphs = (
                 []
             )
-
-            # ------------------------------------------------
-            # Detect source language
-            # ------------------------------------------------
 
             combined_text = " ".join(
                 item["text"]
@@ -992,10 +986,6 @@ if st.session_state.extracted_pages:
                     "not be detected."
                 )
 
-            # ------------------------------------------------
-            # Translate each section
-            # ------------------------------------------------
-
             for index, item in enumerate(
                 st.session_state.extracted_pages
             ):
@@ -1027,10 +1017,6 @@ if st.session_state.extracted_pages:
                     )
                 )
 
-            # ------------------------------------------------
-            # Create output
-            # ------------------------------------------------
-
             status.write(
                 "📄 Creating translated DOCX..."
             )
@@ -1054,10 +1040,6 @@ if st.session_state.extracted_pages:
                         translated_items
                     )
                 )
-
-            # ------------------------------------------------
-            # Save result
-            # ------------------------------------------------
 
             st.session_state.translated_paragraphs = (
                 translated_items
