@@ -1,7 +1,7 @@
 import streamlit as st
 import fitz
 from docx import Document
-from deep_translator import GoogleTranslator
+import requests
 from langdetect import detect
 import tempfile
 import os
