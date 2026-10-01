@@ -219,7 +219,57 @@ def extract_txt(file_bytes):
 
 
 # ============================================================
-# TRANSLATION
+# TEXT CHUNKING
+# ============================================================
+
+def create_chunks(text, max_chars=3000):
+
+    """
+    Split large text into manageable chunks.
+
+    This prevents sending extremely large text
+    in a single translation request.
+    """
+
+    text = text.strip()
+
+    if not text:
+        return []
+
+    chunks = []
+
+    start = 0
+
+    while start < len(text):
+
+        end = start + max_chars
+
+        # If this is not the last chunk,
+        # try to break at a space.
+        if end < len(text):
+
+            space_position = text.rfind(
+                " ",
+                start,
+                end
+            )
+
+            if space_position > start:
+
+                end = space_position
+
+        chunk = text[start:end].strip()
+
+        if chunk:
+            chunks.append(chunk)
+
+        start = end
+
+    return chunks
+
+
+# ============================================================
+# BATCH TRANSLATION
 # ============================================================
 
 def translate_text(text, target_language):
@@ -227,12 +277,50 @@ def translate_text(text, target_language):
     if not text.strip():
         return ""
 
+    # Create larger chunks instead of sending
+    # many small translation requests.
+    chunks = create_chunks(
+        text,
+        max_chars=3000
+    )
+
+    if not chunks:
+        return ""
+
     translator = GoogleTranslator(
         source="auto",
         target=target_language
     )
 
-    return translator.translate(text)
+    translated_chunks = []
+
+    # --------------------------------------------------------
+    # Translate in batches
+    # --------------------------------------------------------
+
+    batch_size = 5
+
+    for i in range(
+        0,
+        len(chunks),
+        batch_size
+    ):
+
+        batch = chunks[
+            i:i + batch_size
+        ]
+
+        translated_batch = translator.translate_batch(
+            batch
+        )
+
+        translated_chunks.extend(
+            translated_batch
+        )
+
+    return "\n\n".join(
+        translated_chunks
+    )
 
 
 # ============================================================
@@ -257,7 +345,7 @@ def create_translated_docx(
     # Title
     # --------------------------------------------------------
 
-    title = document.add_heading(
+    document.add_heading(
         "DocMorph - Translated Document",
         level=0
     )
@@ -419,7 +507,9 @@ if uploaded_file is not None:
 
 if st.session_state.extracted_pages:
 
-    st.subheader("🔍 Document Intelligence")
+    st.subheader(
+        "🔍 Document Intelligence"
+    )
 
     info1, info2, info3 = st.columns(3)
 
@@ -456,7 +546,9 @@ if st.session_state.extracted_pages:
 
 if st.session_state.extracted_pages:
 
-    st.subheader("🌐 Translation Settings")
+    st.subheader(
+        "🌐 Translation Settings"
+    )
 
     target_language_name = st.selectbox(
         "Choose Target Language",
@@ -466,7 +558,6 @@ if st.session_state.extracted_pages:
     target_language = language_map[
         target_language_name
     ]
-
 
     # ========================================================
     # PREVIEW
@@ -488,10 +579,12 @@ if st.session_state.extracted_pages:
 
             if len(preview) > 500:
 
-                preview = preview[:500] + "..."
+                preview = (
+                    preview[:500]
+                    + "..."
+                )
 
             st.write(preview)
-
 
     # ========================================================
     # TRANSLATE BUTTON
