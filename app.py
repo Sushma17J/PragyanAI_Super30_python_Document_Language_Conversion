@@ -58,120 +58,95 @@ st.markdown(
     """
     <style>
 
-    .stApp {
-        background:
-            radial-gradient(
-                circle at 10% 10%,
-                rgba(84, 76, 255, 0.20),
-                transparent 28%
-            ),
-            radial-gradient(
-                circle at 90% 15%,
-                rgba(0, 210, 255, 0.14),
-                transparent 25%
-            ),
-            linear-gradient(
-                135deg,
-                #070812 0%,
-                #0d1020 48%,
-                #090b14 100%
-            );
+    /* Main page */
+
+    .main {
+        padding-top: 1rem;
     }
 
-    [data-testid="stHeader"] {
-        background: transparent;
-    }
+    /* Hero */
 
-    .block-container {
-        max-width: 1250px;
-        padding-top: 2rem;
-        padding-bottom: 3rem;
-    }
-
-    .hero {
-        padding: 38px;
-        border-radius: 28px;
+    .hero-box {
+        padding: 30px;
+        border-radius: 24px;
+        margin-bottom: 25px;
         border: 1px solid rgba(255,255,255,0.12);
         background:
             linear-gradient(
                 135deg,
-                rgba(39,42,88,0.78),
-                rgba(10,13,29,0.82)
+                rgba(80,70,180,0.22),
+                rgba(0,170,255,0.12)
             );
-        box-shadow:
-            0 25px 80px rgba(0,0,0,0.38);
-        margin-bottom: 28px;
     }
 
     .hero-badge {
         display: inline-block;
         padding: 7px 14px;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.13);
-        font-size: 13px;
-        letter-spacing: 0.5px;
+        border-radius: 30px;
+        background: rgba(120,100,255,0.18);
+        border: 1px solid rgba(140,120,255,0.35);
+        color: #c9c2ff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
     }
 
     .hero-title {
-        font-size: 52px;
+        font-size: 48px;
         font-weight: 800;
-        margin: 12px 0 5px 0;
-        letter-spacing: -1.5px;
+        margin: 0;
+        letter-spacing: -1px;
     }
 
     .hero-subtitle {
         color: #b9bfd4;
-        font-size: 18px;
+        font-size: 17px;
         line-height: 1.6;
-        max-width: 850px;
+        margin-top: 10px;
+        max-width: 900px;
     }
 
+    /* Workflow cards */
+
     .step-card {
-        padding: 18px 14px;
+        padding: 18px 12px;
         border-radius: 18px;
         border: 1px solid rgba(255,255,255,0.10);
         background: rgba(255,255,255,0.045);
         text-align: center;
-        min-height: 95px;
+        min-height: 105px;
     }
 
     .step-number {
-        font-size: 12px;
+        font-size: 11px;
         color: #8f96b5;
         letter-spacing: 1px;
         font-weight: 700;
     }
 
+    .step-icon {
+        font-size: 25px;
+        margin-top: 5px;
+    }
+
     .step-title {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 700;
-        margin-top: 6px;
+        margin-top: 5px;
     }
 
-    .section-card {
-        padding: 24px;
-        border-radius: 22px;
-        border: 1px solid rgba(255,255,255,0.10);
-        background: rgba(255,255,255,0.035);
-        margin: 18px 0;
-    }
-
-    .mini-label {
-        color: #8f96b5;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 1.3px;
-        font-weight: 700;
-    }
+    /* Preview boxes */
 
     .preview-box {
         padding: 18px;
         border-radius: 16px;
         border: 1px solid rgba(255,255,255,0.10);
         background: rgba(0,0,0,0.18);
-        margin-bottom: 10px;
+        margin-bottom: 12px;
     }
+
+    /* Success box */
 
     .success-box {
         padding: 18px;
@@ -180,12 +155,7 @@ st.markdown(
         background: rgba(0,255,170,0.06);
     }
 
-    .footer {
-        text-align: center;
-        color: #777e99;
-        padding-top: 30px;
-        font-size: 13px;
-    }
+    /* Metrics */
 
     div[data-testid="stMetric"] {
         background: rgba(255,255,255,0.045);
@@ -194,9 +164,28 @@ st.markdown(
         border-radius: 16px;
     }
 
+    /* Buttons */
+
     button[kind="primary"] {
         border-radius: 14px !important;
         font-weight: 700 !important;
+    }
+
+    /* File uploader */
+
+    section[data-testid="stFileUploaderDropzone"] {
+        border-radius: 18px;
+        border: 1px dashed rgba(130,120,255,0.45);
+    }
+
+    /* Footer */
+
+    .footer-text {
+        text-align: center;
+        color: #777e99;
+        padding-top: 30px;
+        padding-bottom: 15px;
+        font-size: 13px;
     }
 
     </style>
@@ -211,7 +200,7 @@ st.markdown(
 
 st.markdown(
     """
-    <div class="hero">
+    <div class="hero-box">
         <div class="hero-badge">
             ✨ AI-ASSISTED DOCUMENT WORKSPACE
         </div>
@@ -235,33 +224,32 @@ st.markdown(
 # WORKFLOW
 # ============================================================
 
+st.markdown("### 🔄 How DocMorph Works")
+
 steps = [
     ("01", "📥", "INPUT"),
     ("02", "🔍", "ANALYZE"),
     ("03", "🌐", "TRANSLATE"),
-    ("04", "👁️", "PREVIEW & EXPORT")
+    ("04", "👁️", "PREVIEW & EXPORT"),
 ]
 
 cols = st.columns(4)
 
 for col, (number, icon, title) in zip(cols, steps):
-
     with col:
-
         st.markdown(
             f"""
             <div class="step-card">
                 <div class="step-number">{number}</div>
-                <div style="font-size:25px;">
-                    {icon}
-                </div>
-                <div class="step-title">
-                    {title}
-                </div>
+                <div class="step-icon">{icon}</div>
+                <div class="step-title">{title}</div>
             </div>
             """,
             unsafe_allow_html=True
         )
+
+
+st.write("")
 
 
 # ============================================================
@@ -271,12 +259,9 @@ for col, (number, icon, title) in zip(cols, steps):
 with st.sidebar:
 
     st.markdown("## ⚙️ DocMorph")
+    st.caption("Smart document translation workspace")
 
-    st.caption(
-        "Smart document translation workspace"
-    )
-
-    st.markdown("---")
+    st.divider()
 
     st.markdown("### 📄 Supported Files")
 
@@ -291,11 +276,9 @@ with st.sidebar:
     st.write("• Telugu")
     st.write("• Tamil")
 
-    st.markdown("---")
+    st.divider()
 
-    st.caption(
-        "Translation powered through the MyMemory API."
-    )
+    st.caption("Translation powered by the MyMemory API.")
 
 
 # ============================================================
@@ -310,26 +293,28 @@ language_map = {
 }
 
 
-# ============================================================
-# LANGUAGE NAMES
-# ============================================================
-
-language_names = {
+source_names = {
     "en": "English",
     "kn": "Kannada",
     "te": "Telugu",
     "ta": "Tamil",
     "hi": "Hindi",
-    "ml": "Malayalam",
-    "mr": "Marathi",
-    "bn": "Bengali",
-    "gu": "Gujarati",
+    "fr": "French",
+    "de": "German",
+    "es": "Spanish",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "ar": "Arabic",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "zh-cn": "Chinese",
+    "zh-tw": "Chinese",
     "pa": "Punjabi"
 }
 
 
 # ============================================================
-# PDF EXTRACTION
+# DOCUMENT EXTRACTION
 # ============================================================
 
 def extract_pdf_pages(file_bytes):
@@ -346,7 +331,6 @@ def extract_pdf_pages(file_bytes):
         text = page.get_text("text").strip()
 
         if text:
-
             pages.append(
                 {
                     "page": page_number + 1,
@@ -359,10 +343,6 @@ def extract_pdf_pages(file_bytes):
     return pages
 
 
-# ============================================================
-# DOCX EXTRACTION
-# ============================================================
-
 def extract_docx(file_bytes):
 
     temp_path = os.path.join(
@@ -370,17 +350,14 @@ def extract_docx(file_bytes):
         "docmorph_input.docx"
     )
 
-    with open(temp_path, "wb") as file:
-
-        file.write(file_bytes)
+    with open(temp_path, "wb") as f:
+        f.write(file_bytes)
 
     document = Document(temp_path)
 
     paragraphs = []
 
-    for index, paragraph in enumerate(
-        document.paragraphs
-    ):
+    for index, paragraph in enumerate(document.paragraphs):
 
         text = paragraph.text.strip()
 
@@ -395,19 +372,12 @@ def extract_docx(file_bytes):
             )
 
     try:
-
         os.remove(temp_path)
-
     except OSError:
-
         pass
 
     return paragraphs
 
-
-# ============================================================
-# TXT EXTRACTION
-# ============================================================
 
 def extract_txt(file_bytes):
 
@@ -417,7 +387,6 @@ def extract_txt(file_bytes):
     ).strip()
 
     if not text:
-
         return []
 
     return [
@@ -432,15 +401,11 @@ def extract_txt(file_bytes):
 # TEXT CHUNKING
 # ============================================================
 
-def create_chunks(
-    text,
-    max_chars=450
-):
+def create_chunks(text, max_chars=450):
 
     text = text.strip()
 
     if not text:
-
         return []
 
     chunks = []
@@ -463,15 +428,11 @@ def create_chunks(
             )
 
             if space_position > start:
-
                 end = space_position
 
-        chunk = text[
-            start:end
-        ].strip()
+        chunk = text[start:end].strip()
 
         if chunk:
-
             chunks.append(chunk)
 
         start = end
@@ -480,7 +441,7 @@ def create_chunks(
 
 
 # ============================================================
-# TRANSLATE ONE CHUNK
+# TRANSLATION
 # ============================================================
 
 def translate_chunk(
@@ -490,23 +451,16 @@ def translate_chunk(
 ):
 
     if not text.strip():
-
         return ""
 
     if source_language == target_language:
-
         return text
 
-    url = (
-        "https://api.mymemory.translated.net/get"
-    )
+    url = "https://api.mymemory.translated.net/get"
 
     params = {
         "q": text,
-        "langpair": (
-            f"{source_language}|"
-            f"{target_language}"
-        )
+        "langpair": f"{source_language}|{target_language}"
     }
 
     response = requests.get(
@@ -518,8 +472,8 @@ def translate_chunk(
     if response.status_code != 200:
 
         raise Exception(
-            "Translation server returned "
-            f"status {response.status_code}"
+            f"Translation server returned status "
+            f"{response.status_code}"
         )
 
     result = response.json()
@@ -529,25 +483,18 @@ def translate_chunk(
         {}
     )
 
-    translated_text = (
-        response_data.get(
-            "translatedText"
-        )
+    translated_text = response_data.get(
+        "translatedText"
     )
 
     if not translated_text:
 
         raise Exception(
-            "Translation service did not "
-            "return translated text."
+            "Translation service did not return translated text."
         )
 
     return translated_text
 
-
-# ============================================================
-# TRANSLATE COMPLETE TEXT
-# ============================================================
 
 def translate_text(
     text,
@@ -556,7 +503,6 @@ def translate_text(
 ):
 
     if not text or not text.strip():
-
         return ""
 
     chunks = create_chunks(
@@ -574,12 +520,9 @@ def translate_text(
             target_language
         )
 
-        translated_chunks.append(
-            translated
-        )
+        translated_chunks.append(translated)
 
         if index < len(chunks) - 1:
-
             time.sleep(0.4)
 
     return "\n\n".join(
@@ -588,13 +531,12 @@ def translate_text(
 
 
 # ============================================================
-# CREATE TRANSLATED DOCX
-# PRESERVE ORIGINAL DOCX PARAGRAPH STRUCTURE
+# CREATE DOCX WHILE PRESERVING ORIGINAL DOCX STRUCTURE
 # ============================================================
 
 def create_translated_docx_preserve_structure(
     original_bytes,
-    translated_items
+    translated_paragraphs
 ):
 
     temp_input = os.path.join(
@@ -607,20 +549,14 @@ def create_translated_docx_preserve_structure(
         "DocMorph_Translated.docx"
     )
 
-    with open(
-        temp_input,
-        "wb"
-    ) as file:
+    with open(temp_input, "wb") as f:
+        f.write(original_bytes)
 
-        file.write(original_bytes)
-
-    document = Document(
-        temp_input
-    )
+    document = Document(temp_input)
 
     translated_map = {
         item["index"]: item["translated"]
-        for item in translated_items
+        for item in translated_paragraphs
     }
 
     for index, paragraph in enumerate(
@@ -628,21 +564,15 @@ def create_translated_docx_preserve_structure(
     ):
 
         if index not in translated_map:
-
             continue
 
-        translated_text = (
-            translated_map[index]
-        )
+        translated_text = translated_map[index]
 
         if paragraph.runs:
 
-            paragraph.runs[0].text = (
-                translated_text
-            )
+            paragraph.runs[0].text = translated_text
 
             for run in paragraph.runs[1:]:
-
                 run.text = ""
 
         else:
@@ -651,16 +581,11 @@ def create_translated_docx_preserve_structure(
                 translated_text
             )
 
-    document.save(
-        output_path
-    )
+    document.save(output_path)
 
     try:
-
         os.remove(temp_input)
-
     except OSError:
-
         pass
 
     return output_path
@@ -711,9 +636,7 @@ def create_simple_translated_docx(
                         paragraph_text.strip()
                     )
 
-    document.save(
-        output_path
-    )
+    document.save(output_path)
 
     return output_path
 
@@ -722,21 +645,12 @@ def create_simple_translated_docx(
 # DOCUMENT INPUT
 # ============================================================
 
-st.markdown(
-    "## 📥 Document Input"
-)
+st.markdown("## 📥 Document Input")
 
 uploaded_file = st.file_uploader(
-    "Drop your document here",
-    type=[
-        "pdf",
-        "docx",
-        "txt"
-    ],
-    help=(
-        "Supported formats: "
-        "PDF, DOCX and TXT"
-    )
+    "Upload your document",
+    type=["pdf", "docx", "txt"],
+    help="Supported formats: PDF, DOCX and TXT"
 )
 
 
@@ -746,19 +660,10 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
 
-    st.markdown(
-        f"""
-        <div class="section-card">
-            <div class="mini-label">
-                Selected Document
-            </div>
-
-            <h3>
-                📄 {uploaded_file.name}
-            </h3>
-        </div>
-        """,
-        unsafe_allow_html=True
+    # IMPORTANT:
+    # No filename card / HTML filename display here.
+    st.success(
+        "✅ Document uploaded successfully!"
     )
 
     if st.button(
@@ -766,15 +671,17 @@ if uploaded_file is not None:
         use_container_width=True
     ):
 
-        file_bytes = (
-            uploaded_file.getvalue()
-        )
+        file_bytes = uploaded_file.getvalue()
 
         extension = Path(
             uploaded_file.name
         ).suffix.lower()
 
         try:
+
+            # ----------------------------
+            # Extract document
+            # ----------------------------
 
             if extension == ".pdf":
 
@@ -802,6 +709,10 @@ if uploaded_file is not None:
 
                 st.stop()
 
+            # ----------------------------
+            # Remove empty content
+            # ----------------------------
+
             pages = [
                 page
                 for page in pages
@@ -811,21 +722,20 @@ if uploaded_file is not None:
             if not pages:
 
                 raise Exception(
-                    "No readable text was "
-                    "found in the document."
+                    "No readable text was found in the document."
                 )
 
-            st.session_state.extracted_pages = (
+            # ----------------------------
+            # Save session data
+            # ----------------------------
+
+            st.session_state.extracted_pages = pages
+
+            st.session_state.page_count = len(
                 pages
             )
 
-            st.session_state.page_count = (
-                len(pages)
-            )
-
-            st.session_state.input_extension = (
-                extension
-            )
+            st.session_state.input_extension = extension
 
             st.session_state.original_file_bytes = (
                 file_bytes
@@ -837,13 +747,13 @@ if uploaded_file is not None:
 
             # Reset old translation
 
-            st.session_state.translated_file = (
-                None
-            )
+            st.session_state.translated_file = None
 
-            st.session_state.translated_paragraphs = (
-                []
-            )
+            st.session_state.translated_paragraphs = []
+
+            # ----------------------------
+            # Detect language
+            # ----------------------------
 
             combined_text = " ".join(
                 item["text"]
@@ -863,9 +773,7 @@ if uploaded_file is not None:
 
             except Exception:
 
-                st.session_state.source_language = (
-                    "en"
-                )
+                st.session_state.source_language = "en"
 
             st.success(
                 "✅ Document analyzed successfully!"
@@ -884,9 +792,7 @@ if uploaded_file is not None:
 
 if st.session_state.extracted_pages:
 
-    st.markdown(
-        "## 🔍 Document Intelligence"
-    )
+    st.markdown("## 🔍 Document Intelligence")
 
     info1, info2, info3 = st.columns(3)
 
@@ -899,24 +805,25 @@ if st.session_state.extracted_pages:
 
     with info2:
 
-        detected_code = (
+        source_code = (
             st.session_state.source_language
+        )
+
+        source_display = source_names.get(
+            source_code,
+            source_code
         )
 
         st.metric(
             "Detected Language",
-            language_names.get(
-                detected_code,
-                detected_code
-            )
+            source_display
         )
 
     with info3:
 
         total_chars = sum(
             len(item["text"])
-            for item in
-            st.session_state.extracted_pages
+            for item in st.session_state.extracted_pages
         )
 
         st.metric(
@@ -924,66 +831,42 @@ if st.session_state.extracted_pages:
             total_chars
         )
 
+    st.write("")
 
-# ============================================================
-# TRANSLATION SETTINGS
-# ============================================================
-
-if st.session_state.extracted_pages:
-
-    st.markdown(
-        "## 🌐 Translation Studio"
-    )
+    # ========================================================
+    # LANGUAGE SELECTION
+    # ========================================================
 
     col1, col2 = st.columns(2)
 
     with col1:
 
-        st.markdown(
-            '<div class="mini-label">'
-            'Source Language'
-            '</div>',
-            unsafe_allow_html=True
-        )
-
-        source_code = (
-            st.session_state.source_language
-        )
-
         st.info(
-            language_names.get(
-                source_code,
-                source_code
-            )
+            f"🔎 Source Language: **{source_display}**"
         )
 
     with col2:
 
-        target_language_name = (
-            st.selectbox(
-                "Choose Target Language",
-                list(language_map.keys())
-            )
+        target_language_name = st.selectbox(
+            "🌐 Choose Target Language",
+            list(language_map.keys())
         )
 
-        target_language = (
-            language_map[
-                target_language_name
-            ]
-        )
+        target_language = language_map[
+            target_language_name
+        ]
 
 
-# ============================================================
-# ORIGINAL CONTENT PREVIEW
-# ============================================================
+    # ========================================================
+    # ORIGINAL CONTENT PREVIEW
+    # ========================================================
 
     with st.expander(
-        "👁️ Preview Extracted Content"
+        "👁️ Preview Extracted Content",
+        expanded=False
     ):
 
-        for item in (
-            st.session_state.extracted_pages
-        ):
+        for item in st.session_state.extracted_pages:
 
             label = item.get(
                 "page",
@@ -1003,39 +886,21 @@ if st.session_state.extracted_pages:
                     + "..."
                 )
 
-            safe_preview = (
-                preview
-                .replace(
-                    "&",
-                    "&amp;"
-                )
-                .replace(
-                    "<",
-                    "&lt;"
-                )
-                .replace(
-                    ">",
-                    "&gt;"
-                )
-                .replace(
-                    "\n",
-                    "<br>"
-                )
-            )
+            # NORMAL STREAMLIT TEXT
+            # No HTML tags will appear.
 
-            st.markdown(
-                f"""
-                <div class="preview-box">
-                    {safe_preview}
-                </div>
-                """,
-                unsafe_allow_html=True
+            st.text_area(
+                "Extracted text",
+                preview,
+                height=150,
+                key=f"original_preview_{label}",
+                disabled=True
             )
 
 
-# ============================================================
-# TRANSLATE DOCUMENT
-# ============================================================
+    # ========================================================
+    # TRANSLATE
+    # ========================================================
 
     if st.button(
         "🌐 Translate Document",
@@ -1062,8 +927,7 @@ if st.session_state.extracted_pages:
             if not source_language:
 
                 raise Exception(
-                    "Source language could "
-                    "not be detected."
+                    "Source language could not be detected."
                 )
 
             for index, item in enumerate(
@@ -1071,7 +935,7 @@ if st.session_state.extracted_pages:
             ):
 
                 status.write(
-                    "🌐 Translating section "
+                    f"🌐 Translating section "
                     f"{index + 1} of {total}..."
                 )
 
@@ -1090,10 +954,7 @@ if st.session_state.extracted_pages:
 
                 progress.progress(
                     int(
-                        (
-                            (index + 1)
-                            / total
-                        )
+                        ((index + 1) / total)
                         * 80
                     )
                 )
@@ -1102,8 +963,10 @@ if st.session_state.extracted_pages:
                 "📄 Creating translated DOCX..."
             )
 
+            # ------------------------------------------------
             # DOCX
-            # Preserve original paragraph structure
+            # Preserve original paragraph structure.
+            # ------------------------------------------------
 
             if (
                 st.session_state.input_extension
@@ -1117,8 +980,10 @@ if st.session_state.extracted_pages:
                     )
                 )
 
+            # ------------------------------------------------
             # PDF / TXT
-            # Create continuous DOCX
+            # Create one continuous DOCX.
+            # ------------------------------------------------
 
             else:
 
@@ -1128,12 +993,12 @@ if st.session_state.extracted_pages:
                     )
                 )
 
-            st.session_state.translated_file = (
-                output_path
-            )
-
             st.session_state.translated_paragraphs = (
                 translated_items
+            )
+
+            st.session_state.translated_file = (
+                output_path
             )
 
             progress.progress(100)
@@ -1143,8 +1008,7 @@ if st.session_state.extracted_pages:
             )
 
             st.success(
-                "🎉 Your translated document "
-                "is ready!"
+                "🎉 Your translated document is ready!"
             )
 
         except Exception as e:
@@ -1160,8 +1024,10 @@ if st.session_state.extracted_pages:
 
 if st.session_state.translated_file:
 
-    st.markdown(
-        "## 👁️ Translated Document Preview"
+    st.markdown("## 👁️ Translated Document Preview")
+
+    st.caption(
+        "Review the translated content before downloading your DOCX."
     )
 
     try:
@@ -1172,59 +1038,37 @@ if st.session_state.translated_file:
 
         preview_paragraphs = [
             paragraph.text
-            for paragraph in
-            preview_doc.paragraphs
+            for paragraph in preview_doc.paragraphs
             if paragraph.text.strip()
         ]
 
         if preview_paragraphs:
 
-            for paragraph_text in (
+            for index, paragraph_text in enumerate(
                 preview_paragraphs
             ):
 
-                safe_text = (
-                    paragraph_text
-                    .replace(
-                        "&",
-                        "&amp;"
-                    )
-                    .replace(
-                        "<",
-                        "&lt;"
-                    )
-                    .replace(
-                        ">",
-                        "&gt;"
-                    )
-                    .replace(
-                        "\n",
-                        "<br>"
-                    )
-                )
+                # Avoid showing the generated metadata
+                # heading in a confusing way.
 
-                st.markdown(
-                    f"""
-                    <div class="preview-box">
-                        {safe_text}
-                    </div>
-                    """,
-                    unsafe_allow_html=True
+                st.text_area(
+                    f"Translated Section {index + 1}",
+                    paragraph_text,
+                    height=110,
+                    key=f"translated_preview_{index}",
+                    disabled=True
                 )
 
         else:
 
             st.info(
-                "The translated document "
-                "contains no previewable "
-                "paragraphs."
+                "The translated document contains no previewable paragraphs."
             )
 
     except Exception as e:
 
         st.warning(
-            "Preview could not be generated: "
-            f"{str(e)}"
+            f"Preview could not be generated: {str(e)}"
         )
 
 
@@ -1234,55 +1078,45 @@ if st.session_state.translated_file:
 
 if st.session_state.translated_file:
 
-    st.markdown(
-        "## 📤 Export"
+    st.markdown("## 📤 Export")
+
+    st.success(
+        "✅ Translation complete — your DOCX document is ready."
     )
 
-    st.markdown(
-        """
-        <div class="success-box">
-            <strong>✅ Translation complete</strong>
-            <br>
-            Your translated DOCX is ready
-            to download.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    try:
 
-    st.write("")
+        with open(
+            st.session_state.translated_file,
+            "rb"
+        ) as file:
 
-    with open(
-        st.session_state.translated_file,
-        "rb"
-    ) as file:
+            document_bytes = file.read()
 
-        document_bytes = file.read()
+        st.download_button(
+            label="⬇️ Download Translated DOCX",
+            data=document_bytes,
+            file_name="DocMorph_Translated.docx",
+            mime=(
+                "application/vnd.openxmlformats-officedocument."
+                "wordprocessingml.document"
+            ),
+            use_container_width=True
+        )
 
-    st.download_button(
-        label="⬇️ Download Translated DOCX",
-        data=document_bytes,
-        file_name="DocMorph_Translated.docx",
-        mime=(
-            "application/vnd.openxmlformats-officedocument."
-            "wordprocessingml.document"
-        ),
-        use_container_width=True
-    )
+    except Exception as e:
+
+        st.error(
+            f"❌ Download preparation failed: {str(e)}"
+        )
 
 
 # ============================================================
 # FOOTER
 # ============================================================
 
-st.markdown(
-    """
-    <div class="footer">
-        🌐 DocMorph &nbsp;•&nbsp;
-        Smart Document Language Converter
-        &nbsp;•&nbsp;
-        Built with Streamlit
-    </div>
-    """,
-    unsafe_allow_html=True
+st.divider()
+
+st.caption(
+    "🌐 DocMorph • Smart Document Language Converter • Built with Streamlit"
 )
