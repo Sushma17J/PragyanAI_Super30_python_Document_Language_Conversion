@@ -124,8 +124,6 @@ uploaded_file = st.file_uploader(
 # TARGET LANGUAGES
 # ============================================================
 
-# ONLY FOUR LANGUAGES FOR NOW
-
 language_map = {
     "English": "en",
     "Kannada": "kn",
@@ -205,10 +203,10 @@ def extract_txt(file_bytes):
 
 
 # ============================================================
-# CREATE TEXT CHUNKS
+# CREATE SMALL TRANSLATION CHUNKS
 # ============================================================
 
-def create_chunks(text, max_chars=2500):
+def create_chunks(text, max_chars=450):
 
     text = text.strip()
 
@@ -236,7 +234,6 @@ def create_chunks(text, max_chars=2500):
             )
 
             if space_position > start:
-
                 end = space_position
 
         chunk = text[start:end].strip()
@@ -250,183 +247,109 @@ def create_chunks(text, max_chars=2500):
 
 
 # ============================================================
-# TRANSLATE ONE BATCH
+# TRANSLATE ONE CHUNK
 # ============================================================
 
-def translate_batch_with_retry(
-    texts,
-    target_language,
-    max_retries=3
-):
-
-    if not texts:
-        return []
-
-    for attempt in range(max_retries):
-
-        try:
-
-            translator = GoogleTranslator(
-                source="auto",
-                target=target_language
-            )
-
-            translated = translator.translate_batch(
-                texts
-            )
-
-            return translated
-
-        except Exception as e:
-
-            if attempt < max_retries - 1:
-
-                wait_time = (
-                    2 ** attempt
-                )
-
-                time.sleep(wait_time)
-
-            else:
-
-                raise e
-
-
-# ============================================================
-# TRANSLATE DOCUMENT
-# ============================================================
-
-def translate_document_pages(
-    pages,
+def translate_chunk(
+    text,
+    source_language,
     target_language
 ):
 
-    # --------------------------------------------------------
-    # Prepare all text
-    # --------------------------------------------------------
+    if not text.strip():
+        return ""
 
-    all_chunks = []
-    chunk_page_numbers = []
+    # If source and target are the same,
+    # no translation is required.
+    if source_language == target_language:
+        return text
 
-    for item in pages:
+    url = (
+        "https://api.mymemory.translated.net/get"
+    )
 
-        text = item["text"].strip()
+    params = {
+        "q": text,
+        "langpair": (
+            f"{source_language}|"
+            f"{target_language}"
+        )
+    }
 
-        if not text:
-            continue
+    response = requests.get(
+        url,
+        params=params,
+        timeout=30
+    )
 
-        chunks = create_chunks(
-            text,
-            max_chars=2500
+    if response.status_code != 200:
+
+        raise Exception(
+            f"Translation server returned "
+            f"status {response.status_code}"
         )
 
-        for chunk in chunks:
+    result = response.json()
 
-            all_chunks.append(chunk)
+    response_data = result.get(
+        "responseData",
+        {}
+    )
 
-            chunk_page_numbers.append(
-                item["page"]
-            )
+    translated_text = response_data.get(
+        "translatedText"
+    )
 
-    if not all_chunks:
+    if not translated_text:
 
-        return []
+        raise Exception(
+            "Translation service did not "
+            "return translated text."
+        )
 
-    # --------------------------------------------------------
-    # Translate in batches
-    # --------------------------------------------------------
+    return translated_text
+
+
+# ============================================================
+# TRANSLATE COMPLETE TEXT
+# ============================================================
+
+def translate_text(
+    text,
+    source_language,
+    target_language
+):
+
+    if not text or not text.strip():
+        return ""
+
+    chunks = create_chunks(
+        text,
+        max_chars=450
+    )
 
     translated_chunks = []
 
-    batch_size = 5
+    for index, chunk in enumerate(chunks):
 
-    total_batches = (
-        len(all_chunks) + batch_size - 1
-    ) // batch_size
-
-    for start in range(
-        0,
-        len(all_chunks),
-        batch_size
-    ):
-
-        batch = all_chunks[
-            start:start + batch_size
-        ]
-
-        batch_number = (
-            start // batch_size
-        ) + 1
-
-        # Show progress
-        st.write(
-            f"🌐 Translating batch "
-            f"{batch_number} of "
-            f"{total_batches}..."
+        translated = translate_chunk(
+            chunk,
+            source_language,
+            target_language
         )
 
-        translated_batch = (
-            translate_batch_with_retry(
-                batch,
-                target_language
-            )
+        translated_chunks.append(
+            translated
         )
 
-        translated_chunks.extend(
-            translated_batch
-        )
+        # Small delay to avoid sending
+        # requests too quickly.
+        if index < len(chunks) - 1:
+            time.sleep(0.4)
 
-        # IMPORTANT:
-        # Wait between batches to reduce
-        # Google rate-limit problems.
-        if (
-            start + batch_size
-            < len(all_chunks)
-        ):
-
-            time.sleep(1.5)
-
-    # --------------------------------------------------------
-    # Rebuild translated pages
-    # --------------------------------------------------------
-
-    page_text = {}
-
-    for index, translated_text in enumerate(
+    return "\n\n".join(
         translated_chunks
-    ):
-
-        page_number = (
-            chunk_page_numbers[index]
-        )
-
-        if page_number not in page_text:
-
-            page_text[page_number] = []
-
-        page_text[page_number].append(
-            translated_text
-        )
-
-    translated_pages = []
-
-    for page in pages:
-
-        page_number = page["page"]
-
-        translated_text = "\n\n".join(
-            page_text.get(
-                page_number,
-                []
-            )
-        )
-
-        translated_pages.append({
-            "page": page_number,
-            "translated": translated_text
-        })
-
-    return translated_pages
+    )
 
 
 # ============================================================
@@ -478,7 +401,9 @@ def create_translated_docx(
     # TRANSLATED PAGES
     # --------------------------------------------------------
 
-    for item in translated_pages:
+    for index, item in enumerate(
+        translated_pages
+    ):
 
         document.add_heading(
             f"Page {item['page']}",
@@ -491,8 +416,7 @@ def create_translated_docx(
                 item["translated"]
             )
 
-        # Add page break except after last page
-        if item != translated_pages[-1]:
+        if index < len(translated_pages) - 1:
 
             document.add_page_break()
 
@@ -502,7 +426,7 @@ def create_translated_docx(
 
 
 # ============================================================
-# ANALYZE BUTTON
+# ANALYZE DOCUMENT
 # ============================================================
 
 if uploaded_file is not None:
@@ -559,7 +483,7 @@ if uploaded_file is not None:
 
                     st.stop()
 
-                # Remove completely empty pages
+                # Remove empty pages
                 pages = [
                     page
                     for page in pages
@@ -575,7 +499,7 @@ if uploaded_file is not None:
                 )
 
                 # ------------------------------------------------
-                # DETECT LANGUAGE
+                # LANGUAGE DETECTION
                 # ------------------------------------------------
 
                 combined_text = " ".join(
@@ -599,7 +523,7 @@ if uploaded_file is not None:
                     except Exception:
 
                         st.session_state.source_language = (
-                            "Unknown"
+                            "en"
                         )
 
                 st.success(
@@ -672,6 +596,7 @@ if st.session_state.extracted_pages:
         target_language_name
     ]
 
+
     # ========================================================
     # PREVIEW
     # ========================================================
@@ -700,6 +625,7 @@ if st.session_state.extracted_pages:
 
             st.write(preview)
 
+
     # ========================================================
     # TRANSLATE BUTTON
     # ========================================================
@@ -714,26 +640,59 @@ if st.session_state.extracted_pages:
 
         status = st.empty()
 
+        translated_pages = []
+
+        total = len(
+            st.session_state.extracted_pages
+        )
+
         try:
 
-            status.write(
-                "🔄 Preparing document for translation..."
+            source_language = (
+                st.session_state.source_language
             )
 
-            progress.progress(10)
-
             # ------------------------------------------------
-            # TRANSLATE ALL PAGES
+            # Check source language
             # ------------------------------------------------
 
-            translated_pages = (
-                translate_document_pages(
-                    st.session_state.extracted_pages,
+            if not source_language:
+
+                raise Exception(
+                    "Source language could not "
+                    "be detected."
+                )
+
+            # ------------------------------------------------
+            # Translate each page
+            # ------------------------------------------------
+
+            for index, item in enumerate(
+                st.session_state.extracted_pages
+            ):
+
+                status.write(
+                    f"🌐 Translating page / section "
+                    f"{index + 1} of {total}..."
+                )
+
+                translated = translate_text(
+                    item["text"],
+                    source_language,
                     target_language
                 )
-            )
 
-            progress.progress(80)
+                translated_pages.append({
+                    "page": item["page"],
+                    "translated": translated
+                })
+
+                progress.progress(
+                    int(
+                        ((index + 1) / total)
+                        * 80
+                    )
+                )
 
             # ------------------------------------------------
             # CREATE DOCX
@@ -745,7 +704,7 @@ if st.session_state.extracted_pages:
 
             output_path = create_translated_docx(
                 translated_pages,
-                st.session_state.source_language,
+                source_language,
                 target_language_name,
                 uploaded_file.name
             )
