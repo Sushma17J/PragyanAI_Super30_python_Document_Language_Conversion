@@ -1,742 +1,70 @@
-import streamlit as st
-import fitz
-from docx import Document
-import requests
-from langdetect import detect
-import tempfile
-import os
-from pathlib import Path
-import time
-
-
-# ============================================================
-# PAGE CONFIG
-# ============================================================
-
-st.set_page_config(
-    page_title="DocMorph",
-    page_icon="🌐",
-    layout="wide"
-)
-
-
-# ============================================================
-# CUSTOM CSS
-# ============================================================
-
-st.markdown(
-    """
-    <style>
-
-    .main-title {
-        font-size: 42px;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 5px;
-    }
-
-    .subtitle {
-        text-align: center;
-        font-size: 18px;
-        margin-bottom: 30px;
-    }
-
-    .step-card {
-        padding: 15px;
-        border-radius: 12px;
-        text-align: center;
-        border: 1px solid #444;
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-
-# ============================================================
-# TITLE
-# ============================================================
-
-st.markdown(
-    '<div class="main-title">🌐 DocMorph</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="subtitle">'
-    'Smart Document Language Converter'
-    '</div>',
-    unsafe_allow_html=True
-)
-
-
-# ============================================================
-# SESSION STATE
-# ============================================================
-
-if "extracted_pages" not in st.session_state:
-    st.session_state.extracted_pages = []
-
-if "source_language" not in st.session_state:
-    st.session_state.source_language = ""
-
-if "translated_file" not in st.session_state:
-    st.session_state.translated_file = None
-
-if "page_count" not in st.session_state:
-    st.session_state.page_count = 0
-
-
-# ============================================================
-# WORKFLOW HEADER
-# ============================================================
-
-step1, step2, step3, step4 = st.columns(4)
-
-with step1:
-    st.info("01\n\n📥 INPUT")
-
-with step2:
-    st.info("02\n\n🔍 ANALYZE")
-
-with step3:
-    st.info("03\n\n🌐 TRANSLATE")
-
-with step4:
-    st.info("04\n\n📤 EXPORT")
-
-
-# ============================================================
-# UPLOAD SECTION
-# ============================================================
-
-st.subheader("📥 Document Input")
-
-uploaded_file = st.file_uploader(
-    "Upload your document",
-    type=["pdf", "docx", "txt"],
-    help="Supported formats: PDF, DOCX and TXT"
-)
-
-
-# ============================================================
-# TARGET LANGUAGES
-# ============================================================
-
-language_map = {
-    "English": "en",
-    "Kannada": "kn",
-    "Telugu": "te",
-    "Tamil": "ta"
-}
-
-
-# ============================================================
-# DOCUMENT EXTRACTION
-# ============================================================
-
-def extract_pdf_pages(file_bytes):
-
-    pages = []
-
-    pdf = fitz.open(
-        stream=file_bytes,
-        filetype="pdf"
-    )
-
-    for page_number, page in enumerate(pdf):
-
-        text = page.get_text("text")
-
-        pages.append({
-            "page": page_number + 1,
-            "text": text.strip()
-        })
-
-    pdf.close()
-
-    return pages
-
-
-def extract_docx(file_bytes):
-
-    temp_path = os.path.join(
-        tempfile.gettempdir(),
-        "input_document.docx"
-    )
-
-    with open(temp_path, "wb") as f:
-        f.write(file_bytes)
-
-    document = Document(temp_path)
-
-    paragraphs = []
-
-    for paragraph in document.paragraphs:
-
-        text = paragraph.text.strip()
-
-        if text:
-
-            paragraphs.append({
-                "page": 1,
-                "text": text
-            })
-
-    os.remove(temp_path)
-
-    return paragraphs
-
-
-def extract_txt(file_bytes):
-
-    text = file_bytes.decode(
-        "utf-8",
-        errors="ignore"
-    )
-
-    return [{
-        "page": 1,
-        "text": text
-    }]
-
-
-# ============================================================
-# CREATE SMALL TRANSLATION CHUNKS
-# ============================================================
-
-def create_chunks(text, max_chars=450):
-
-    text = text.strip()
-
-    if not text:
-        return []
-
-    chunks = []
-
-    start = 0
-
-    while start < len(text):
-
-        end = min(
-            start + max_chars,
-            len(text)
-        )
-
-        # Try to break at a space
-        if end < len(text):
-
-            space_position = text.rfind(
-                " ",
-                start,
-                end
-            )
-
-            if space_position > start:
-                end = space_position
-
-        chunk = text[start:end].strip()
-
-        if chunk:
-            chunks.append(chunk)
-
-        start = end
-
-    return chunks
-
-
-# ============================================================
-# TRANSLATE ONE CHUNK
-# ============================================================
-
-def translate_chunk(
-    text,
-    source_language,
-    target_language
-):
-
-    if not text.strip():
-        return ""
-
-    # If source and target are the same,
-    # no translation is required.
-    if source_language == target_language:
-        return text
-
-    url = (
-        "https://api.mymemory.translated.net/get"
-    )
-
-    params = {
-        "q": text,
-        "langpair": (
-            f"{source_language}|"
-            f"{target_language}"
-        )
-    }
-
-    response = requests.get(
-        url,
-        params=params,
-        timeout=30
-    )
-
-    if response.status_code != 200:
-
-        raise Exception(
-            f"Translation server returned "
-            f"status {response.status_code}"
-        )
-
-    result = response.json()
-
-    response_data = result.get(
-        "responseData",
-        {}
-    )
-
-    translated_text = response_data.get(
-        "translatedText"
-    )
-
-    if not translated_text:
-
-        raise Exception(
-            "Translation service did not "
-            "return translated text."
-        )
-
-    return translated_text
-
-
-# ============================================================
-# TRANSLATE COMPLETE TEXT
-# ============================================================
-
-def translate_text(
-    text,
-    source_language,
-    target_language
-):
-
-    if not text or not text.strip():
-        return ""
-
-    chunks = create_chunks(
-        text,
-        max_chars=450
-    )
-
-    translated_chunks = []
-
-    for index, chunk in enumerate(chunks):
-
-        translated = translate_chunk(
-            chunk,
-            source_language,
-            target_language
-        )
-
-        translated_chunks.append(
-            translated
-        )
-
-        # Small delay to avoid sending
-        # requests too quickly.
-        if index < len(chunks) - 1:
-            time.sleep(0.4)
-
-    return "\n\n".join(
-        translated_chunks
-    )
-
-
-# ============================================================
-# CREATE DOCX
-# ============================================================
-
-def create_translated_docx(
-    translated_pages,
-    source_language,
-    target_language,
-    original_name
-):
-
-    output_path = os.path.join(
-        tempfile.gettempdir(),
-        "DocMorph_Translated.docx"
-    )
-
-    document = Document()
-
-    # --------------------------------------------------------
-    # TITLE
-    # --------------------------------------------------------
-
-    document.add_heading(
-        "DocMorph - Translated Document",
-        level=0
-    )
-
-    document.add_paragraph(
-        f"Original Document: {original_name}"
-    )
-
-    document.add_paragraph(
-        f"Source Language: {source_language}"
-    )
-
-    document.add_paragraph(
-        f"Target Language: {target_language}"
-    )
-
-    document.add_paragraph(
-        "Generated using DocMorph"
-    )
-
-    document.add_page_break()
-
-    # --------------------------------------------------------
-    # TRANSLATED PAGES
-    # --------------------------------------------------------
-
-    for index, item in enumerate(
-        translated_pages
-    ):
-
-        document.add_heading(
-            f"Page {item['page']}",
-            level=1
-        )
-
-        if item["translated"]:
-
-            document.add_paragraph(
-                item["translated"]
-            )
-
-        if index < len(translated_pages) - 1:
-
-            document.add_page_break()
-
-    document.save(output_path)
-
-    return output_path
-
-
-# ============================================================
-# ANALYZE DOCUMENT
-# ============================================================
-
-if uploaded_file is not None:
-
-    st.success(
-        f"📄 {uploaded_file.name} uploaded"
-    )
-
-    col_a, col_b = st.columns(2)
-
-    with col_a:
-
-        if st.button(
-            "🔍 Analyze Document",
-            use_container_width=True
-        ):
-
-            file_bytes = (
-                uploaded_file.getvalue()
-            )
-
-            extension = Path(
-                uploaded_file.name
-            ).suffix.lower()
-
-            try:
-
-                # PDF
-                if extension == ".pdf":
-
-                    pages = extract_pdf_pages(
-                        file_bytes
-                    )
-
-                # DOCX
-                elif extension == ".docx":
-
-                    pages = extract_docx(
-                        file_bytes
-                    )
-
-                # TXT
-                elif extension == ".txt":
-
-                    pages = extract_txt(
-                        file_bytes
-                    )
-
-                else:
-
-                    st.error(
-                        "Unsupported file format."
-                    )
-
-                    st.stop()
-
-                # Remove empty pages
-                pages = [
-                    page
-                    for page in pages
-                    if page["text"].strip()
-                ]
-
-                st.session_state.extracted_pages = (
-                    pages
-                )
-
-                st.session_state.page_count = (
-                    len(pages)
-                )
-
-                # ------------------------------------------------
-                # LANGUAGE DETECTION
-                # ------------------------------------------------
-
-                combined_text = " ".join(
-                    item["text"]
-                    for item in pages
-                    if item["text"]
-                )
-
-                if combined_text:
-
-                    try:
-
-                        detected = detect(
-                            combined_text[:3000]
-                        )
-
-                        st.session_state.source_language = (
-                            detected
-                        )
-
-                    except Exception:
-
-                        st.session_state.source_language = (
-                            "en"
-                        )
-
-                st.success(
-                    "✅ Document analyzed successfully!"
-                )
-
-            except Exception as e:
-
-                st.error(
-                    f"❌ Analysis error: {str(e)}"
-                )
-
-
-# ============================================================
-# DOCUMENT INFORMATION
-# ============================================================
-
-if st.session_state.extracted_pages:
-
-    st.subheader(
-        "🔍 Document Intelligence"
-    )
-
-    info1, info2, info3 = st.columns(3)
-
-    with info1:
-
-        st.metric(
-            "Pages / Sections",
-            st.session_state.page_count
-        )
-
-    with info2:
-
-        st.metric(
-            "Detected Language",
-            st.session_state.source_language
-        )
-
-    with info3:
-
-        total_chars = sum(
-            len(item["text"])
-            for item
-            in st.session_state.extracted_pages
-        )
-
-        st.metric(
-            "Characters",
-            total_chars
-        )
-
-
-# ============================================================
-# TARGET LANGUAGE
-# ============================================================
-
-if st.session_state.extracted_pages:
-
-    st.subheader(
-        "🌐 Translation Settings"
-    )
-
-    target_language_name = st.selectbox(
-        "Choose Target Language",
-        list(language_map.keys())
-    )
-
-    target_language = language_map[
-        target_language_name
-    ]
-
-
-    # ========================================================
-    # PREVIEW
-    # ========================================================
-
-    with st.expander(
-        "👁 Preview Extracted Content"
-    ):
-
-        for item in (
-            st.session_state.extracted_pages
-        ):
-
-            st.markdown(
-                f"**Page / Section "
-                f"{item['page']}**"
-            )
-
-            preview = item["text"]
-
-            if len(preview) > 500:
-
-                preview = (
-                    preview[:500]
-                    + "..."
-                )
-
-            st.write(preview)
-
-
-    # ========================================================
-    # TRANSLATE BUTTON
-    # ========================================================
-
-    if st.button(
-        "🌐 Translate Document",
-        type="primary",
-        use_container_width=True
-    ):
-
-        progress = st.progress(0)
-
-        status = st.empty()
-
-        translated_pages = []
-
-        total = len(
-            st.session_state.extracted_pages
-        )
-
-        try:
-
-            source_language = (
-                st.session_state.source_language
-            )
-
-            # ------------------------------------------------
-            # Check source language
-            # ------------------------------------------------
-
-            if not source_language:
-
-                raise Exception(
-                    "Source language could not "
-                    "be detected."
-                )
-
-            # ------------------------------------------------
-            # Translate each page
-            # ------------------------------------------------
-
-            for index, item in enumerate(
-                st.session_state.extracted_pages
-            ):
-
-                status.write(
-                    f"🌐 Translating page / section "
-                    f"{index + 1} of {total}..."
-                )
-
-                translated = translate_text(
-                    item["text"],
-                    source_language,
-                    target_language
-                )
-
-                translated_pages.append({
-                    "page": item["page"],
-                    "translated": translated
-                })
-
-                progress.progress(
-                    int(
-                        ((index + 1) / total)
-                        * 80
-                    )
-                )
-
-            # ------------------------------------------------
-            # CREATE DOCX
-            # ------------------------------------------------
-
-            status.write(
-                "📄 Creating translated DOCX..."
-            )
-
-            output_path = create_translated_docx(
-                translated_pages,
-                source_language,
-                target_language_name,
-                uploaded_file.name
-            )
-
-            st.session_state.translated_file = (
-                output_path
-            )
-
-            progress.progress(100)
-
-            status.write(
-                "✅ Translation completed!"
-            )
-
-            st.success(
-                "🎉 Your translated document is ready!"
-            )
-
-        except Exception as e:
-
-            st.error(
-                f"❌ Translation error: {str(e)}"
-            )
-
-
-# ============================================================
-# DOWNLOAD
+# PREVIEW TRANSLATED DOCUMENT
 # ============================================================
 
 if st.session_state.translated_file:
 
-    st.subheader("📤 Export")
+    st.markdown(
+        '<div class="section-title">👁️ Translated Document Preview</div>',
+        unsafe_allow_html=True
+    )
+
+    st.caption(
+        "Review the translated document before downloading."
+    )
+
+    preview_doc = Document(
+        st.session_state.translated_file
+    )
+
+    st.markdown(
+        '<div class="preview-box">',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '<div class="preview-label">DOCUMENT PREVIEW</div>',
+        unsafe_allow_html=True
+    )
+
+    preview_has_content = False
+
+    for paragraph in preview_doc.paragraphs:
+
+        if paragraph.text.strip():
+
+            preview_has_content = True
+
+            st.markdown(
+                f"<p style='color:#e8edf7;"
+                f"font-size:16px;line-height:1.7;"
+                f"margin-bottom:14px;'>"
+                f"{paragraph.text}"
+                f"</p>",
+                unsafe_allow_html=True
+            )
+
+    if not preview_has_content:
+
+        st.info(
+            "No text available for preview."
+        )
+
+    st.markdown(
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+
+# ============================================================
+# EXPORT
+# ============================================================
+
+if st.session_state.translated_file:
+
+    st.markdown(
+        '<div class="section-title">📤 Export</div>',
+        unsafe_allow_html=True
+    )
 
     with open(
         st.session_state.translated_file,
@@ -755,3 +83,29 @@ if st.session_state.translated_file:
         ),
         use_container_width=True
     )
+
+    st.caption(
+        "✓ Preview checked  •  ✓ DOCX ready  •  ✓ Download available"
+    )
+
+
+# ============================================================
+# FOOTER
+# ============================================================
+
+st.markdown(
+    """
+    <div style="
+        text-align:center;
+        margin-top:55px;
+        padding-top:20px;
+        border-top:1px solid rgba(255,255,255,.08);
+        color:#75829a;
+        font-size:13px;
+    ">
+        🌐 DocMorph &nbsp;•&nbsp;
+        Smart Document Translation Workspace
+    </div>
+    """,
+    unsafe_allow_html=True
+)
