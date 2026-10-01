@@ -37,7 +37,7 @@ DEFAULTS = {
     "original_file_name": "",
     "last_uploaded_file": "",
 
-    # Voice selection
+    # Voice language selection
     "voice_language": "",
     "voice_language_confirmed": False,
     "voice_language_text": ""
@@ -59,33 +59,6 @@ st.markdown(
 
     .main {
         padding-top: 1rem;
-    }
-
-    .step-card {
-        padding: 18px 12px;
-        border-radius: 18px;
-        border: 1px solid rgba(255,255,255,0.10);
-        background: rgba(255,255,255,0.045);
-        text-align: center;
-        min-height: 100px;
-    }
-
-    .step-number {
-        font-size: 11px;
-        color: #8f96b5;
-        letter-spacing: 1px;
-        font-weight: 700;
-    }
-
-    .step-icon {
-        font-size: 25px;
-        margin-top: 5px;
-    }
-
-    .step-title {
-        font-size: 15px;
-        font-weight: 700;
-        margin-top: 5px;
     }
 
     div[data-testid="stMetric"] {
@@ -192,9 +165,11 @@ source_names = {
     "ar": "Arabic",
     "ja": "Japanese",
     "ko": "Korean",
+
     "zh-cn": "Chinese",
     "zh-CN": "Chinese",
     "zh-tw": "Chinese",
+
     "tr": "Turkish",
     "nl": "Dutch",
     "el": "Greek",
@@ -340,14 +315,12 @@ def find_language_from_speech(
         .replace(",", "")
     )
 
-    # Exact match
     if cleaned_text in voice_language_aliases:
 
         return voice_language_aliases[
             cleaned_text
         ]
 
-    # Search inside sentence
     for alias, language in (
         voice_language_aliases.items()
     ):
@@ -382,51 +355,35 @@ st.write(
 # WORKFLOW
 # ============================================================
 
-st.markdown(
-    "### 🔄 How DocMorph Works"
+st.markdown("### 🔄 How DocMorph Works")
+
+workflow_col1, workflow_col2, workflow_col3, workflow_col4 = (
+    st.columns(4)
 )
 
-steps = [
+with workflow_col1:
 
-    ("01", "📥", "INPUT"),
-    ("02", "🔍", "ANALYZE"),
-    ("03", "🌐", "CHOOSE LANGUAGE"),
-    ("04", "🌐", "TRANSLATE"),
-    ("05", "👁️", "PREVIEW & EXPORT")
+    st.markdown("### 01")
+    st.markdown("## 📥")
+    st.markdown("**INPUT**")
 
-]
+with workflow_col2:
 
-workflow_cols = st.columns(5)
+    st.markdown("### 02")
+    st.markdown("## 🔍")
+    st.markdown("**ANALYZE**")
 
-for column, step in zip(
-    workflow_cols,
-    steps
-):
+with workflow_col3:
 
-    number, icon, title = step
+    st.markdown("### 03")
+    st.markdown("## 🌐")
+    st.markdown("**TRANSLATE**")
 
-    with column:
+with workflow_col4:
 
-        st.markdown(
-            f"""
-            <div class="step-card">
-
-                <div class="step-number">
-                    {number}
-                </div>
-
-                <div class="step-icon">
-                    {icon}
-                </div>
-
-                <div class="step-title">
-                    {title}
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    st.markdown("### 04")
+    st.markdown("## 👁️")
+    st.markdown("**PREVIEW & EXPORT**")
 
 st.write("")
 
@@ -437,9 +394,7 @@ st.write("")
 
 with st.sidebar:
 
-    st.markdown(
-        "## ⚙️ DocMorph"
-    )
+    st.markdown("## ⚙️ DocMorph")
 
     st.caption(
         "Smart document translation workspace"
@@ -451,9 +406,7 @@ with st.sidebar:
     # SIMPLE DOCX UPLOAD
     # --------------------------------------------------------
 
-    st.markdown(
-        "### 📄 Upload Document"
-    )
+    st.markdown("### 📄 Upload Document")
 
     st.caption(
         "Upload your DOCX file here."
@@ -475,9 +428,7 @@ with st.sidebar:
     # SUPPORTED FILES
     # --------------------------------------------------------
 
-    st.markdown(
-        "### 📄 Supported Files"
-    )
+    st.markdown("### 📄 Supported Files")
 
     st.write("• PDF")
     st.write("• DOCX")
@@ -487,9 +438,7 @@ with st.sidebar:
     # TARGET LANGUAGES
     # --------------------------------------------------------
 
-    st.markdown(
-        "### 🌐 Target Languages"
-    )
+    st.markdown("### 🌐 Target Languages")
 
     for language in language_map.keys():
 
@@ -587,9 +536,7 @@ def extract_docx(
 
     try:
 
-        os.remove(
-            temp_path
-        )
+        os.remove(temp_path)
 
     except OSError:
 
@@ -786,9 +733,7 @@ def translate_text(
             len(chunks) - 1
         ):
 
-            time.sleep(
-                0.4
-            )
+            time.sleep(0.4)
 
     return "\n\n".join(
         translated_chunks
@@ -939,9 +884,7 @@ def create_simple_translated_docx(
 # DOCUMENT INPUT
 # ============================================================
 
-st.markdown(
-    "## 📥 Document Input"
-)
+st.markdown("## 📥 Document Input")
 
 uploaded_file = st.file_uploader(
     "Upload your document",
@@ -1213,10 +1156,6 @@ if st.session_state.extracted_pages:
 
     with language_col2:
 
-        # ----------------------------------------------------
-        # NORMAL DROPDOWN
-        # ----------------------------------------------------
-
         target_language_name = st.selectbox(
             "🌐 Select Target Language",
             list(language_map.keys()),
@@ -1225,7 +1164,7 @@ if st.session_state.extracted_pages:
 
 
     # ========================================================
-    # VOICE OPTION
+    # VOICE TARGET LANGUAGE
     # ========================================================
 
     st.markdown("---")
@@ -1371,7 +1310,7 @@ if st.session_state.extracted_pages:
 
 
     # ========================================================
-    # USE CONFIRMED VOICE LANGUAGE
+    # APPLY CONFIRMED VOICE LANGUAGE
     # ========================================================
 
     if (
@@ -1452,9 +1391,7 @@ if st.session_state.extracted_pages:
         key="translate_document_button"
     ):
 
-        progress = st.progress(
-            0
-        )
+        progress = st.progress(0)
 
         status = st.empty()
 
@@ -1555,9 +1492,7 @@ if st.session_state.extracted_pages:
                 output_path
             )
 
-            progress.progress(
-                100
-            )
+            progress.progress(100)
 
             status.success(
                 "✅ Translation completed!"
