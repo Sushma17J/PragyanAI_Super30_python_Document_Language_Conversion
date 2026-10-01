@@ -43,7 +43,7 @@ for key, value in DEFAULTS.items():
 
 
 # ============================================================
-# SIMPLE CSS
+# CSS
 # ============================================================
 
 st.markdown(
@@ -52,18 +52,6 @@ st.markdown(
 
     .main {
         padding-top: 1rem;
-    }
-
-    .hero-box {
-        padding: 30px;
-        border-radius: 24px;
-        margin-bottom: 25px;
-        border: 1px solid rgba(255,255,255,0.12);
-        background: linear-gradient(
-            135deg,
-            rgba(80,70,180,0.22),
-            rgba(0,170,255,0.12)
-        );
     }
 
     .step-card {
@@ -146,10 +134,7 @@ steps = [
 
 workflow_cols = st.columns(4)
 
-for workflow_index, (
-    column,
-    step
-) in enumerate(zip(workflow_cols, steps)):
+for column, step in zip(workflow_cols, steps):
 
     number, icon, title = step
 
@@ -170,6 +155,115 @@ st.write("")
 
 
 # ============================================================
+# LANGUAGE MAP
+# ============================================================
+
+language_map = {
+
+    # Indian Languages
+    "English": "en",
+    "Hindi": "hi",
+    "Kannada": "kn",
+    "Telugu": "te",
+    "Tamil": "ta",
+    "Marathi": "mr",
+    "Bengali": "bn",
+    "Gujarati": "gu",
+    "Punjabi": "pa",
+    "Malayalam": "ml",
+    "Urdu": "ur",
+    "Assamese": "as",
+    "Nepali": "ne",
+    "Sanskrit": "sa",
+
+    # European Languages
+    "French": "fr",
+    "German": "de",
+    "Spanish": "es",
+    "Italian": "it",
+    "Portuguese": "pt",
+    "Russian": "ru",
+    "Dutch": "nl",
+    "Greek": "el",
+    "Polish": "pl",
+    "Ukrainian": "uk",
+    "Romanian": "ro",
+    "Hungarian": "hu",
+    "Czech": "cs",
+    "Swedish": "sv",
+    "Danish": "da",
+    "Finnish": "fi",
+    "Norwegian": "no",
+
+    # Asian / Middle Eastern Languages
+    "Arabic": "ar",
+    "Japanese": "ja",
+    "Korean": "ko",
+    "Chinese": "zh-CN",
+    "Turkish": "tr",
+    "Hebrew": "he",
+    "Vietnamese": "vi",
+    "Indonesian": "id",
+    "Malay": "ms",
+    "Thai": "th"
+}
+
+
+# ============================================================
+# SOURCE LANGUAGE NAMES
+# ============================================================
+
+source_names = {
+
+    "en": "English",
+    "hi": "Hindi",
+    "kn": "Kannada",
+    "te": "Telugu",
+    "ta": "Tamil",
+    "mr": "Marathi",
+    "bn": "Bengali",
+    "gu": "Gujarati",
+    "pa": "Punjabi",
+    "ml": "Malayalam",
+    "ur": "Urdu",
+    "as": "Assamese",
+    "ne": "Nepali",
+    "sa": "Sanskrit",
+
+    "fr": "French",
+    "de": "German",
+    "es": "Spanish",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "ru": "Russian",
+    "nl": "Dutch",
+    "el": "Greek",
+    "pl": "Polish",
+    "uk": "Ukrainian",
+    "ro": "Romanian",
+    "hu": "Hungarian",
+    "cs": "Czech",
+    "sv": "Swedish",
+    "da": "Danish",
+    "fi": "Finnish",
+    "no": "Norwegian",
+
+    "ar": "Arabic",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "zh-cn": "Chinese",
+    "zh-CN": "Chinese",
+    "zh-tw": "Chinese",
+    "tr": "Turkish",
+    "he": "Hebrew",
+    "vi": "Vietnamese",
+    "id": "Indonesian",
+    "ms": "Malay",
+    "th": "Thai"
+}
+
+
+# ============================================================
 # SIDEBAR
 # ============================================================
 
@@ -183,9 +277,9 @@ with st.sidebar:
 
     st.divider()
 
-    # ========================================================
+    # --------------------------------------------------------
     # SIMPLE DOCX UPLOAD
-    # ========================================================
+    # --------------------------------------------------------
 
     st.markdown("### 📄 Upload Document")
 
@@ -205,9 +299,9 @@ with st.sidebar:
             "✅ Document uploaded!"
         )
 
-    # ========================================================
+    # --------------------------------------------------------
     # SUPPORTED FILES
-    # ========================================================
+    # --------------------------------------------------------
 
     st.markdown("### 📄 Supported Files")
 
@@ -215,60 +309,23 @@ with st.sidebar:
     st.write("• DOCX")
     st.write("• TXT")
 
-    # ========================================================
+    # --------------------------------------------------------
     # TARGET LANGUAGES
-    # ========================================================
+    # --------------------------------------------------------
 
     st.markdown("### 🌐 Target Languages")
 
-    st.write("• English")
-    st.write("• Kannada")
-    st.write("• Telugu")
-    st.write("• Tamil")
-    st.write("• Hindi")
+    for language in language_map.keys():
+
+        st.write(
+            f"• {language}"
+        )
 
     st.divider()
 
     st.caption(
         "Translation powered by the MyMemory API."
     )
-
-
-# ============================================================
-# LANGUAGE MAP
-# ============================================================
-
-language_map = {
-    "English": "en",
-    "Kannada": "kn",
-    "Telugu": "te",
-    "Tamil": "ta",
-    "Hindi": "hi"
-}
-
-
-# ============================================================
-# SOURCE LANGUAGE NAMES
-# ============================================================
-
-source_names = {
-    "en": "English",
-    "kn": "Kannada",
-    "te": "Telugu",
-    "ta": "Tamil",
-    "hi": "Hindi",
-    "fr": "French",
-    "de": "German",
-    "es": "Spanish",
-    "it": "Italian",
-    "pt": "Portuguese",
-    "ar": "Arabic",
-    "ja": "Japanese",
-    "ko": "Korean",
-    "zh-cn": "Chinese",
-    "zh-tw": "Chinese",
-    "pa": "Punjabi"
-}
 
 
 # ============================================================
@@ -286,7 +343,9 @@ def extract_pdf_pages(file_bytes):
 
     for page_number, page in enumerate(pdf):
 
-        text = page.get_text("text").strip()
+        text = page.get_text(
+            "text"
+        ).strip()
 
         if text:
 
@@ -313,11 +372,18 @@ def extract_docx(file_bytes):
         "docmorph_input.docx"
     )
 
-    with open(temp_path, "wb") as file:
+    with open(
+        temp_path,
+        "wb"
+    ) as file:
 
-        file.write(file_bytes)
+        file.write(
+            file_bytes
+        )
 
-    document = Document(temp_path)
+    document = Document(
+        temp_path
+    )
 
     paragraphs = []
 
@@ -339,7 +405,9 @@ def extract_docx(file_bytes):
 
     try:
 
-        os.remove(temp_path)
+        os.remove(
+            temp_path
+        )
 
     except OSError:
 
@@ -415,7 +483,9 @@ def create_chunks(
 
         if chunk:
 
-            chunks.append(chunk)
+            chunks.append(
+                chunk
+            )
 
         start = end
 
@@ -521,9 +591,14 @@ def translate_text(
             translated
         )
 
-        if chunk_index < len(chunks) - 1:
+        if (
+            chunk_index
+            < len(chunks) - 1
+        ):
 
-            time.sleep(0.4)
+            time.sleep(
+                0.4
+            )
 
     return "\n\n".join(
         translated_chunks
@@ -531,7 +606,7 @@ def translate_text(
 
 
 # ============================================================
-# CREATE DOCX PRESERVING ORIGINAL PARAGRAPHS
+# CREATE DOCX PRESERVING STRUCTURE
 # ============================================================
 
 def create_translated_docx_preserve_structure(
@@ -549,11 +624,18 @@ def create_translated_docx_preserve_structure(
         "DocMorph_Translated.docx"
     )
 
-    with open(temp_input, "wb") as file:
+    with open(
+        temp_input,
+        "wb"
+    ) as file:
 
-        file.write(original_bytes)
+        file.write(
+            original_bytes
+        )
 
-    document = Document(temp_input)
+    document = Document(
+        temp_input
+    )
 
     translated_map = {
         item["index"]: item["translated"]
@@ -568,9 +650,9 @@ def create_translated_docx_preserve_structure(
 
             continue
 
-        translated_text = translated_map[
-            index
-        ]
+        translated_text = (
+            translated_map[index]
+        )
 
         if paragraph.runs:
 
@@ -588,11 +670,15 @@ def create_translated_docx_preserve_structure(
                 translated_text
             )
 
-    document.save(output_path)
+    document.save(
+        output_path
+    )
 
     try:
 
-        os.remove(temp_input)
+        os.remove(
+            temp_input
+        )
 
     except OSError:
 
@@ -648,7 +734,9 @@ def create_simple_translated_docx(
                     paragraph_text.strip()
                 )
 
-    document.save(output_path)
+    document.save(
+        output_path
+    )
 
     return output_path
 
@@ -657,7 +745,9 @@ def create_simple_translated_docx(
 # DOCUMENT INPUT
 # ============================================================
 
-st.markdown("## 📥 Document Input")
+st.markdown(
+    "## 📥 Document Input"
+)
 
 uploaded_file = st.file_uploader(
     "Upload your document",
@@ -680,7 +770,9 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
 
-    current_file_name = uploaded_file.name
+    current_file_name = (
+        uploaded_file.name
+    )
 
     if (
         st.session_state.last_uploaded_file
@@ -711,6 +803,7 @@ if uploaded_file is not None:
         "✅ Document uploaded successfully!"
     )
 
+
     # ========================================================
     # ANALYZE BUTTON
     # ========================================================
@@ -721,13 +814,19 @@ if uploaded_file is not None:
         key="analyze_document_button"
     ):
 
-        file_bytes = uploaded_file.getvalue()
+        file_bytes = (
+            uploaded_file.getvalue()
+        )
 
         extension = Path(
             uploaded_file.name
         ).suffix.lower()
 
         try:
+
+            # ------------------------------------------------
+            # Extract text
+            # ------------------------------------------------
 
             if extension == ".pdf":
 
@@ -753,6 +852,11 @@ if uploaded_file is not None:
                     "Unsupported file format."
                 )
 
+
+            # ------------------------------------------------
+            # Remove empty sections
+            # ------------------------------------------------
+
             pages = [
                 page
                 for page in pages
@@ -765,6 +869,11 @@ if uploaded_file is not None:
                     "No readable text was "
                     "found in the document."
                 )
+
+
+            # ------------------------------------------------
+            # Save extracted information
+            # ------------------------------------------------
 
             st.session_state.extracted_pages = (
                 pages
@@ -793,6 +902,11 @@ if uploaded_file is not None:
             st.session_state.translated_paragraphs = (
                 []
             )
+
+
+            # ------------------------------------------------
+            # Detect source language
+            # ------------------------------------------------
 
             combined_text = " ".join(
                 item["text"]
@@ -895,15 +1009,19 @@ if st.session_state.extracted_pages:
 
     with language_col2:
 
-        target_language_name = st.selectbox(
-            "🌐 Choose Target Language",
-            list(language_map.keys()),
-            key="target_language_selector"
+        target_language_name = (
+            st.selectbox(
+                "🌐 Choose Target Language",
+                list(language_map.keys()),
+                key="target_language_selector"
+            )
         )
 
-        target_language = language_map[
-            target_language_name
-        ]
+        target_language = (
+            language_map[
+                target_language_name
+            ]
+        )
 
 
     # ========================================================
@@ -963,7 +1081,9 @@ if st.session_state.extracted_pages:
         key="translate_document_button"
     ):
 
-        progress = st.progress(0)
+        progress = st.progress(
+            0
+        )
 
         status = st.empty()
 
@@ -985,6 +1105,11 @@ if st.session_state.extracted_pages:
                     "Source language could "
                     "not be detected."
                 )
+
+
+            # ------------------------------------------------
+            # Translate each section
+            # ------------------------------------------------
 
             for index, item in enumerate(
                 st.session_state.extracted_pages
@@ -1017,6 +1142,11 @@ if st.session_state.extracted_pages:
                     )
                 )
 
+
+            # ------------------------------------------------
+            # Create output
+            # ------------------------------------------------
+
             status.write(
                 "📄 Creating translated DOCX..."
             )
@@ -1041,6 +1171,11 @@ if st.session_state.extracted_pages:
                     )
                 )
 
+
+            # ------------------------------------------------
+            # Save result
+            # ------------------------------------------------
+
             st.session_state.translated_paragraphs = (
                 translated_items
             )
@@ -1049,7 +1184,9 @@ if st.session_state.extracted_pages:
                 output_path
             )
 
-            progress.progress(100)
+            progress.progress(
+                100
+            )
 
             status.success(
                 "✅ Translation completed!"
@@ -1097,7 +1234,10 @@ if st.session_state.translated_file:
 
         if preview_paragraphs:
 
-            for translated_index, paragraph_text in enumerate(
+            for (
+                translated_index,
+                paragraph_text
+            ) in enumerate(
                 preview_paragraphs
             ):
 
@@ -1134,7 +1274,9 @@ if st.session_state.translated_file:
 
 if st.session_state.translated_file:
 
-    st.markdown("## 📤 Export")
+    st.markdown(
+        "## 📤 Export"
+    )
 
     st.success(
         "✅ Translation complete — "
